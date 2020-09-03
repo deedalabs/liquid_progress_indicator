@@ -2,31 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:liquid_progress_indicator/src/wave.dart';
 
 class LiquidLinearProgressIndicator extends ProgressIndicator {
-  ///The width of the border, if this is set [borderColor] must also be set.
-  final double borderWidth;
-
-  ///The color of the border, if this is set [borderWidth] must also be set.
-  final Color borderColor;
-
-  ///The radius of the border.
-  final double borderRadius;
-
-  ///The widget to show in the center of the progress indicator.
-  final Widget center;
-
-  ///The direction the liquid travels.
-  final Axis direction;
-
   LiquidLinearProgressIndicator({
     Key key,
-    double value = 0.5,
+    @required double value,
     Color backgroundColor,
     Animation<Color> valueColor,
-    this.borderWidth,
     this.borderColor,
-    this.borderRadius,
-    this.center,
+    this.borderRadius = 0,
+    this.borderWidth = 0,
+    this.child,
     this.direction = Axis.horizontal,
+    this.duration = const Duration(seconds: 1),
+    this.curve = Curves.easeInOut,
+    this.waveDuration = const Duration(seconds: 2),
   }) : super(
           key: key,
           value: value,
@@ -38,6 +26,15 @@ class LiquidLinearProgressIndicator extends ProgressIndicator {
       throw ArgumentError("borderWidth and borderColor should both be set.");
     }
   }
+
+  final double borderWidth;
+  final Color borderColor;
+  final double borderRadius;
+  final Widget child;
+  final Axis direction;
+  final Duration duration;
+  final Curve curve;
+  final Duration waveDuration;
 
   Color _getBackgroundColor(BuildContext context) =>
       backgroundColor ?? Theme.of(context).backgroundColor;
@@ -62,19 +59,24 @@ class _LiquidLinearProgressIndicatorState
           color: widget._getBackgroundColor(context),
           radius: widget.borderRadius,
         ),
-        foregroundPainter: _LinearBorderPainter(
-          color: widget.borderColor,
-          width: widget.borderWidth,
-          radius: widget.borderRadius,
-        ),
+        foregroundPainter: widget.borderWidth > 0
+            ? _LinearBorderPainter(
+                color: widget.borderColor,
+                width: widget.borderWidth,
+                radius: widget.borderRadius,
+              )
+            : null,
         child: Stack(
           children: <Widget>[
             Wave(
               value: widget.value,
               color: widget._getValueColor(context),
               direction: widget.direction,
+              duration: widget.duration,
+              curve: widget.curve,
+              waveDuration: widget.waveDuration,
             ),
-            if (widget.center != null) Center(child: widget.center),
+            if (widget.child != null) widget.child,
           ],
         ),
       ),
